@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: springgreeting-v1
+  labels:
+    account: springgreeting-v1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springgreeting-v1
+  labels:
+    app: springgreeting
+    version: stable
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springgreeting
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: springgreeting
+        version: stable
+    spec:
+      serviceAccountName: springgreeting-v1
+      containers:
+      - name: springgreeting
+        image: gcr.io/tech-rnd-project/springgreeting-v1:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9090
+        securityContext:
+          runAsUser: 1000
+---

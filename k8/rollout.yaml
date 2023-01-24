@@ -1,0 +1,45 @@
+# basic-rollout.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: springgreeting
+spec:
+  replicas: 1
+  strategy: 
+    canary:
+      analysis:
+          templates:
+            - templateName: success-rate
+          startingStep: 2
+          args:
+            - name: service-name
+              value: springgreeting.default.svc.cluster.local 
+      steps: 
+        - setWeight: 20
+        - pause: { duration: 10m }
+        - setWeight: 40
+        - pause: { duration: 10m }
+        - setWeight: 60
+        - pause: { duration: 10m }
+        - setWeight: 80
+        - pause: { duration: 10m }
+  revisionHistoryLimit: 2 
+  selector:
+    matchLabels:
+      app: springgreeting
+  template:
+    metadata:
+      labels:
+        app: springgreeting
+    spec:
+      containers:
+        - name: springgreeting
+          image: gcr.io/tech-rnd-project/springgreeting-v1:1.0.0
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 5m
